@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>International Business – Calm Study Sheet (Light)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Nunito:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --muted:#4b5563;
+      --text:#0f172a;
+      --brand:#5b8def;    /* cornflower */
+      --brand-2:#62d2a2;  /* mint */
+      --accent:#f59e0b;   /* amber */
+      --ok:#16a34a;
+      --bad:#dc2626;
+      --chip:#f1f5f9;
+      --border:rgba(2,6,23,.08);
+      --shadow: 0 12px 28px rgba(2,6,23,.06);
+      --bg-grad: radial-gradient(1200px 800px at 0% -10%, rgba(98,210,162,.15), transparent 50%),
+                 radial-gradient(900px 700px at 120% 10%, rgba(91,141,239,.18), transparent 55%);
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220;
+      --card:#121a2b;
+      --muted:#98a2b3;
+      --text:#e8eefc;
+      --brand:#6aa8ff;
+      --brand-2:#58e3c1;
+      --accent:#ffd166;
+      --ok:#56d364;
+      --bad:#ff6b6b;
+      --chip:#1a2338;
+      --border:rgba(255,255,255,.07);
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --bg-grad: radial-gradient(1200px 800px at 10% -10%, rgba(106,168,255,.15), transparent 50%),
+                 radial-gradient(900px 700px at 110% 10%, rgba(88,227,193,.12), transparent 50%);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Nunito, Inter, system-ui, Segoe UI, Roboto, Arial, Helvetica, sans-serif;
+      background: var(--bg-grad), var(--bg);
+      color:var(--text);
+      line-height:1.75;
+    }
+    a{color:var(--brand)}
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.75));
+      border-bottom:1px solid var(--border);
+    }
+    [data-theme="dark"] header{ background: linear-gradient(180deg, rgba(11,18,32,.9), rgba(11,18,32,.7)); }
+    .wrap{max-width:1200px; margin:0 auto; padding:14px 20px;}
+    .title{display:flex; align-items:center; gap:14px}
+    .logo{
+      width:42px;height:42px;border-radius:12px;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      display:grid;place-items:center;
+      box-shadow:0 6px 20px rgba(91,141,239,.35);
+      font-weight:800;color:#ffffff;
+    }
+    .title h1{margin:0; font-size:20px; letter-spacing:.3px}
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--border);
+      background:var(--chip); color:var(--text);
+      box-shadow: var(--shadow);
+      cursor:pointer; transition:.15s ease;
+      font-weight:700;
+    }
+    .btn:hover{transform:translateY(-1px); filter:saturate(1.05)}
+    .btn.brand{ background: linear-gradient(90deg, var(--brand), var(--brand-2)); color:#fff; border:0 }
+    .grid{display:grid; gap:18px}
+    @media (min-width: 980px){ .grid{ grid-template-columns: 300px 1fr; } }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px; padding:20px;
+      box-shadow: var(--shadow);
+    }
+    .toc .group{display:flex; flex-direction:column; gap:8px}
+    .toc a{
+      text-decoration:none; color:var(--muted);
+      padding:10px 12px; border-radius:12px; transition:.12s; font-weight:600;
+    }
+    .toc a:hover{background:#eef2ff; color:#1e293b}
+    [data-theme="dark"] .toc a:hover{ background:#1a243b; color:#e8eefc }
+    h2{margin:6px 0 8px; font-size:24px}
+    h3{margin:12px 0 6px; font-size:18px; color:#1e293b}
+    [data-theme="dark"] h3{ color:#dbe7ff }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      background:var(--chip); border:1px solid var(--border); color:var(--muted); font-weight:700;
+    }
+    .kps{display:grid; gap:12px}
+    @media (min-width: 680px){ .kps{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .kp{padding:14px; border:1px dashed var(--border); border-radius:14px; background:#fafcff}
+    [data-theme="dark"] .kp{ background:#0f182a }
+    .kp ul{margin:8px 0 0 16px}
+    .badge{font-size:12px; background:#eef2ff; padding:5px 8px; border-radius:8px; border:1px solid var(--border); color:#475569; font-weight:700}
+    [data-theme="dark"] .badge{ background:rgba(255,255,255,.06); color:#98a2b3 }
+    details{background:#ffffff; border:1px solid var(--border); border-radius:14px; padding:12px 14px}
+    details+details{margin-top:10px}
+    [data-theme="dark"] details{ background:#0e1627 }
+    summary{cursor:pointer; font-weight:800; letter-spacing:.2px}
+    .hint{color:var(--muted); font-size:14px}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0}
+    .chip{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:12px; font-weight:700}
+    .quiz{display:grid; gap:16px}
+    .q{padding:14px; border:1px solid var(--border); border-radius:14px; background:#ffffff}
+    [data-theme="dark"] .q{ background:#0f182a }
+    .choices{display:grid; gap:8px; margin-top:8px}
+    .choice{background:#f8fafc; border:1px solid var(--border); padding:10px 12px; border-radius:12px; display:flex; gap:10px; align-items:flex-start}
+    [data-theme="dark"] .choice{ background:#13203a }
+    .choice input{margin-top:3px}
+    .result{margin-top:12px; padding:10px 12px; border-radius:10px; font-weight:800}
+    .ok{background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0}
+    .bad{background:#fef2f2; color:#991b1b; border:1px solid #fecaca}
+    .explain{font-size:14px; color:var(--muted); margin-top:6px}
+    .footer{margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between}
+    .search{width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:#fff; color:var(--text); box-shadow: var(--shadow)}
+    [data-theme="dark"] .search{ background:#0f1728 }
+    .sticky-col{position:sticky; top:84px; align-self:start}
+    .small{font-size:14px; color:var(--muted)}
+    .toggle{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .focus-off .toc{display:none}
+    .focus-off main.grid{ grid-template-columns: 1fr !important; }
+    .note{background:#fef9c3; border:1px solid #fde68a; color:#7c6513; padding:8px 12px; border-radius:10px; font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:16px">
+      <div class="title">
+        <div class="logo">IB</div>
+        <h1>International Business – Calm Study Sheet</h1>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="toggleTheme()" title="Light/Dark">Theme</button>
+        <button class="btn" onclick="toggleFocus()" title="Hide sidebar & distractions">Focus mode</button>
+        <button class="btn" onclick="toggleAllAnswers(true)">Show all answers</button>
+        <button class="btn" onclick="toggleAllAnswers(false)">Hide all answers</button>
+        <button class="btn brand" onclick="window.print()">Print / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <!-- Left: TOC -->
+    <aside class="card sticky-col toc">
+      <input id="search" class="search" placeholder="Search topics…" oninput="doSearch(this.value)" />
+      <div class="small" style="margin:8px 0 14px">Quick navigator</div>
+      <div class="group" id="toc">
+        <a href="#fundamentals">Fundamentals</a>
+        <a href="#env-forces">Environment & Forces</a>
+        <a href="#globalization">Globalization</a>
+        <a href="#institutions">Institutions</a>
+        <a href="#legal-political">Political & Legal</a>
+        <a href="#culture">Sociocultural</a>
+        <a href="#flashcards">Flashcards</a>
+        <a href="#quiz">Final Quiz</a>
+      </div>
+      <div class="note" style="margin-top:12px">
+        Tip: Use “Focus mode” for a clean, distraction‑free page while revising.
+      </div>
+    </aside>
+
+    <!-- Right: Content (copied from prior version; light theme applies) -->
+    <section class="grid" style="grid-template-columns:1fr">
+      <!-- Fundamentals -->
+      <section id="fundamentals" class="card">
+        <div class="pill">Lectures 1 & 2</div>
+        <h2>Fundamentals of International Business</h2>
+        <div class="chips">
+          <div class="chip">IB vs Domestic</div>
+          <div class="chip">IWE</div>
+          <div class="chip">MDC</div>
+        </div>
+        <div class="kps">
+          <div class="kp">
+            <h3>What is International Business?</h3>
+            <ul>
+              <li><b>International Business (IB):</b> activities carried across national borders.</li>
+              <li><b>Foreign Business:</b> operations of a company outside its home market.</li>
+              <li><b>Multi‑Domestic Company (MDC):</b> has affiliates per country, each crafting its own strategy for local differences.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>International Work Environment (IWE)</h3>
+            <ul>
+              <li>People from different nationalities work together; global branches/clients.</li>
+              <li>Relies on global standards, virtual collaboration, cross‑border operations.</li>
+              <li>Builds intercultural communication & adaptability.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top:14px">Exam Nuggets</h3>
+        <details><summary>IB vs Domestic Business</summary>
+          <div class="hint">Domestic faces mainly home forces; IB faces domestic, foreign, and international forces together.</div>
+        </details>
+        <details><summary>Why managers need IB literacy?</summary>
+          <ul>
+            <li>Firms increasingly engaged in IB; CEOs expect global perspective.</li>
+            <li>Important for senior and entry roles; critical as activity expands.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Environment & Forces -->
+      <section id="env-forces" class="card">
+        <div class="pill">Forces</div>
+        <h2>Environment & Forces</h2>
+        <div class="kps">
+          <div class="kp">
+            <h3>Uncontrollable (External) Forces</h3>
+            <ul>
+              <li>Competitive, Distributive, Economic, Socioeconomic, Financial</li>
+              <li>Legal, Physical, Political, Sociocultural, Labor, Technological</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Controllable (Internal) Forces</h3>
+            <ul>
+              <li>Strategy, structure, systems, resources that management can adjust.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Environments</h3>
+            <ul>
+              <li><b>Domestic</b> (home‑country external forces)</li>
+              <li><b>Foreign</b> (host‑country external forces)</li>
+              <li><b>International</b> (interaction among sets of forces)</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Motives to Enter Foreign Markets</h3>
+            <ul>
+              <li>Grow sales & profits; faster‑growing markets; lower costs.</li>
+              <li>Secure supply/technology; diversify geographically.</li>
+              <li>Protect/defend markets; follow customers; attack competitors at home.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Globalization -->
+      <section id="globalization" class="card">
+        <div class="pill">Trends</div>
+        <h2>Globalization</h2>
+        <div class="kps">
+          <div class="kp">
+            <h3>Definition & Drivers</h3>
+            <ul>
+              <li>Integration of goods, tech, info, labor, capital.</li>
+              <li><b>Drivers:</b> Political, Technological, Market, Cost, Competitive.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Support vs Concerns</h3>
+            <ul>
+              <li><span class="badge">Pros</span> Growth, efficiency, jobs, tech transfer, lower prices, innovation.</li>
+              <li><span class="badge">Concerns</span> Inequality, labor & environment issues, cultural loss, dependency.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Facets</h3>
+            <ul>
+              <li>Markets merge; production sourced globally.</li>
+              <li>Impacts jobs/income, policy, sovereignty, the poor.</li>
+            </ul>
+          </div>
+        </div>
+        <details><summary>Globalization of Markets vs Production</summary>
+          <ul>
+            <li><b>Markets:</b> converging tastes → one big marketplace (e.g., Coke, PlayStation).</li>
+            <li><b>Production:</b> source where cost/quality of factors best (e.g., Boeing, Vizio).</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Institutions -->
+      <section id="institutions" class="card">
+        <div class="pill">Institutions</div>
+        <h2>International Institutions</h2>
+        <div class="kps">
+          <div class="kp">
+            <h3>Why Institutions Matter</h3>
+            <ul>
+              <li>Enforce rules; reduce barriers; support fair competition.</li>
+              <li>Set technical/safety standards; prevent trade chaos.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Types</h3>
+            <ul>
+              <li>Regional (EU), Nongovernmental (ICC), Intergovernmental (WTO, IMF, World Bank, UN).</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>WTO</h3>
+            <ul>
+              <li>Founded 1995; 160+ members; manages global trade rules.</li>
+              <li>Functions: reduce barriers, dispute resolution, negotiations, monitoring.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>UN Family</h3>
+            <ul>
+              <li><b>IMF:</b> currency stability, balance‑of‑payments support, exchange rate oversight.</li>
+              <li><b>World Bank:</b> development & poverty reduction, infrastructure, capacity building.</li>
+              <li><b>UN:</b> peace, standards, development agendas.</li>
+            </ul>
+          </div>
+        </div>
+        <details><summary>Critiques & Cases</summary>
+          <ul>
+            <li>Bias toward wealthy; transparency issues (Seattle 1999); slow reform (IMF voting).</li>
+            <li>Example: WTO Banana dispute; Zambia outcomes of structural reforms.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Political & Legal -->
+      <section id="legal-political" class="card">
+        <div class="pill">Lecture 6</div>
+        <h2>Political & Legal Forces</h2>
+        <div class="kps">
+          <div class="kp">
+            <h3>Government & Competition</h3>
+            <ul>
+              <li><b>Nationalization:</b> state takes control (revenue, ideology, jobs, post‑event).</li>
+              <li><b>Privatization:</b> shift to private sector to boost efficiency.</li>
+              <li><b>Unfair Competition:</b> false ads, trademark abuse, trade‑secret theft, dumping, predatory pricing.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Government Protection</h3>
+            <ul>
+              <li>Economic (tariffs, subsidies), Consumer, Environmental, Labor, National Security.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Country Risk Assessment</h3>
+            <ul>
+              <li>Political, Economic, Legal/Regulatory, FX risk, Transfer/Convertibility.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Legal Forces</h3>
+            <ul>
+              <li>Contracts, tax, labor, trade limits, environment, IP, consumer protection.</li>
+              <li>Dispute resolution: courts vs <b>arbitration (ICC)</b> – faster, neutral, enforceable.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>IP & Compliance</h3>
+            <ul>
+              <li>IP types: patents, copyrights, trademarks, trade secrets.</li>
+              <li>Anti‑corruption: FCPA (US), UK Bribery Act; heavy penalties.</li>
+              <li>Tax: transfer pricing scrutiny; double‑tax treaties.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Dumping – Types</h3>
+            <ul>
+              <li>Persistent, Predatory, Sporadic, Social/Environmental, Reverse, Financial, Tax.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Culture -->
+      <section id="culture" class="card">
+        <div class="pill">Sociocultural</div>
+        <h2>Sociocultural Forces</h2>
+        <div class="kps">
+          <div class="kp">
+            <h3>What is Culture?</h3>
+            <ul>
+              <li>Values + Norms shared by a group → “design for living”.</li>
+              <li>Affects all functions: marketing, HR, operations, controls, leadership.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Determinants & Workplace</h3>
+            <ul>
+              <li>Social class, religion/ethics, language (spoken & unspoken), education.</li>
+              <li>Hofstede: power distance, individualism, uncertainty avoidance, masculinity.</li>
+            </ul>
+          </div>
+          <div class="kp">
+            <h3>Implications</h3>
+            <ul>
+              <li>Cross‑cultural literacy; culture ↔ competitive advantage; ethical decisions.</li>
+            </ul>
+          </div>
+        </div>
+        <details><summary>Examples – Hofstede</summary>
+          <ul>
+            <li>High power distance: Egypt; Low: Sweden.</li>
+            <li>Individualism: USA; Collectivism: China.</li>
+            <li>High UA: Greece; Low UA: Singapore.</li>
+            <li>Masculinity: Japan; Femininity: Netherlands.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Flashcards -->
+      <section id="flashcards" class="card">
+        <div class="pill">Practice</div>
+        <h2>Flashcards (Tap to reveal)</h2>
+        <div class="toggle small">
+          <button class="btn" onclick="revealAll(true)">Reveal all</button>
+          <button class="btn" onclick="revealAll(false)">Hide all</button>
+        </div>
+        <div id="cards" style="display:grid; gap:12px; margin-top:12px"></div>
+      </section>
+
+      <!-- Quiz -->
+      <section id="quiz" class="card">
+        <div class="pill">Test Yourself</div>
+        <h2>Final Quiz</h2>
+        <p class="small">20 questions • instant scoring • review explanations</p>
+        <div id="quizBox" class="quiz"></div>
+        <div class="footer">
+          <div class="toggle">
+            <button class="btn brand" onclick="gradeQuiz()">Grade Quiz</button>
+            <button class="btn" onclick="resetQuiz()">Reset</button>
+          </div>
+          <div id="score" class="badge">Score: –/20</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    // Theme toggle
+    function toggleTheme(){
+      const html = document.documentElement;
+      const cur = html.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('ib_theme', next);
+    }
+    // Focus mode
+    function toggleFocus(){
+      const body = document.body;
+      body.classList.toggle('focus-off');
+    }
+    // Search
+    function doSearch(q){
+      q = q.toLowerCase();
+      const sections = document.querySelectorAll('section.card');
+      sections.forEach(s => {
+        const txt = s.innerText.toLowerCase();
+        s.style.display = txt.includes(q) ? '' : 'none';
+      });
+    }
+    // Toggle answers in <details>
+    function toggleAllAnswers(open){
+      document.querySelectorAll('details').forEach(d => d.open = open);
+    }
+
+    // Flashcards
+    const flashcards = [
+      {q:'Define International Business (IB).', a:'Business activities carried out across national borders.'},
+      {q:'Difference: IB vs Domestic business.', a:'IB faces domestic, foreign, and international forces; domestic mainly home forces.'},
+      {q:'Three environments faced by IB.', a:'Domestic, Foreign, International.'},
+      {q:'Uncontrollable vs Controllable forces.', a:'External vs internal (strategy, structure, resources).'},
+      {q:'Motives to enter foreign markets – list 3.', a:'Grow profits; access new markets; lower costs; secure supply/tech; diversify.'},
+      {q:'Globalization – core drivers.', a:'Political, Technological, Market, Cost, Competitive.'},
+      {q:'Globalization of markets vs production.', a:'Markets: converging tastes; Production: global sourcing for factor advantages.'},
+      {q:'WTO – two main functions.', a:'Reduce barriers; dispute resolution; negotiations & monitoring.'},
+      {q:'IMF vs World Bank – main roles.', a:'IMF: monetary stability & BoP support; WB: development & infrastructure.'},
+      {q:'Dumping (definition).', a:'Exporting below normal value/cost to gain advantage.'},
+      {q:'Types of dumping (2).', a:'Predatory, Persistent, Sporadic, Social/Environmental, Reverse, Financial, Tax.'},
+      {q:'Nationalization vs Privatization.', a:'State takes control vs shift to private sector for efficiency.'},
+      {q:'Country Risk – list 3 types.', a:'Political, Economic, Legal/Regulatory, FX, Transfer/Convertibility.'},
+      {q:'Preferred IB dispute resolution.', a:'Arbitration (e.g., ICC): neutral, faster, enforceable.'},
+      {q:'IP types.', a:'Patents, Copyrights, Trademarks, Trade Secrets.'},
+      {q:'Hofstede dimensions.', a:'Power distance, Individualism/Collectivism, Uncertainty Avoidance, Masculinity/Femininity.'},
+      {q:'High power distance example.', a:'Egypt.'},
+      {q:'Low uncertainty avoidance example.', a:'Singapore.'},
+      {q:'Why institutions matter?', a:'Ensure rules, reduce barriers, set standards, support fairness.'},
+      {q:'Government protection – give 2 types.', a:'Economic (tariffs/subsidies), Consumer, Environmental, Labor, National Security.'}
+    ];
+    function cardTemplate(i, q, a){
+      return `<details class="card" style="padding:14px"><summary>${i}. ${q}</summary><div style="margin-top:8px">${a}</div></details>`;
+    }
+    function renderCards(){
+      const box = document.getElementById('cards');
+      box.innerHTML = flashcards.map((c,i)=>cardTemplate(i+1,c.q,c.a)).join('');
+    }
+    function revealAll(open){ document.querySelectorAll('#cards details').forEach(d=>d.open=open); }
+
+    // Quiz (same bank as before)
+    const quiz = [
+      {q:'International Business primarily deals with which sets of forces?', c:['Domestic only','Foreign only','Domestic, Foreign, and International','Technological only'], a:2, e:'IB faces domestic and foreign forces and their interactions.'},
+      {q:'A Multi‑Domestic Company (MDC) typically...', c:['Uses one global strategy for all markets','Lets each country affiliate craft its own strategy','Avoids foreign markets','Only exports, no FDI'], a:1, e:'MDC adapts strategy per local market differences.'},
+      {q:'Which is NOT an uncontrollable (external) force?', c:['Political','Legal','Technological','Organizational structure'], a:3, e:'Organizational structure is internal/controllable.'},
+      {q:'A key motive to enter foreign markets is to...', c:['Increase exposure only','Reduce sales','Access faster-growing markets','Avoid competition'], a:2, e:'Firms seek growth, lower costs, new markets, etc.'},
+      {q:'Which is a driver of globalization?', c:['Seasonality','Political and technological changes','Local customs only','Office culture'], a:1, e:'Political, technological, market, cost, competitive.'},
+      {q:'Globalization of production means...', c:['Selling identical products globally','Sourcing where factors are most advantageous','Standardizing ads','Eliminating services'], a:1, e:'Firms source inputs globally for cost/quality.'},
+      {q:'Which is an argument supporting globalization?', c:['Higher prices','Reduced innovation','Job creation and efficiency','Less access to markets'], a:2, e:'Pros include growth, jobs, lower prices, innovation.'},
+      {q:'A concern about globalization is...', c:['Cultural exchange','Inequality and labor/environment issues','Efficient resource allocation','Tech transfer'], a:1, e:'Critics point to inequality, environment, labor.'},
+      {q:'WTO core function:', c:['Issue patents','Police trade rules & resolve disputes','Set exchange rates','Run peacekeeping'], a:1, e:'WTO manages trade rules and disputes.'},
+      {q:'IMF is best described as...', c:['Development bank','Monetary stability & BoP support body','Trade court','Trademark office'], a:1, e:'IMF handles monetary cooperation and stability.'},
+      {q:'Dumping refers to...', c:['Selling above cost abroad','Exporting below normal value/cost','Raising domestic prices','Only social marketing'], a:1, e:'Dumping undercuts foreign markets with low prices.'},
+      {q:'Predatory dumping aims to...', c:['Boost CSR','Remove local competitors then raise prices','Reduce pollution','Improve quality only'], a:1, e:'Predatory: price low to kill rivals, then increase.'},
+      {q:'Nationalization is...', c:['Selling state assets to private sector','State taking control of firms/sectors','Only setting tariffs','Tax reduction policy'], a:1, e:'Opposite of privatization.'},
+      {q:'Country Risk does NOT include:', c:['FX risk','Transfer & convertibility','Employee bonus risk','Political risk'], a:2, e:'Employee bonuses are micro HR, not CRA.'},
+      {q:'Preferred IB dispute resolution:', c:['Local courts only','Arbitration (e.g., ICC)','Public referendum','Military court'], a:1, e:'Arbitration is neutral, faster, widely enforceable.'},
+      {q:'Intellectual property includes all EXCEPT:', c:['Patents','Copyrights','Inventory methods','Trademarks'], a:2, e:'Trade secrets also included; inventory methods are not IP.'},
+      {q:'UK Bribery Act & US FCPA are examples of...', c:['Labor laws','Anti‑corruption laws','Customs codes','Environmental treaties'], a:1, e:'They prohibit bribery with extraterritorial reach.'},
+      {q:'High power distance example from lecture:', c:['Sweden','Netherlands','Egypt','Singapore'], a:2, e:'Egypt noted as high power distance.'},
+      {q:'Which is a type of government protection?', c:['Derivative pricing','Environmental regulation','Trademark infringement','Predatory pricing'], a:1, e:'Gov protection includes environment, labor, tariffs, etc.'},
+      {q:'Globalization of markets means...', c:['Divergent tastes everywhere','Converging preferences into a big marketplace','Only services globalize','No need to adapt ever'], a:1, e:'Tastes converge; think Coke/PlayStation examples.'}
+    ];
+    function quizTemplate(i, q){
+      const choices = q.c.map((t,idx)=>`
+        <label class="choice">
+          <input type="radio" name="q${i}" value="${idx}">
+          <div><b>${String.fromCharCode(65+idx)}.</b> ${t}</div>
+        </label>`).join('');
+      return `<div class="q" data-i="${i}">
+        <div><b>${i+1}.</b> ${q.q}</div>
+        <div class="choices">${choices}</div>
+        <div class="result" style="display:none"></div>
+        <div class="explain" style="display:none"></div>
+      </div>`;
+    }
+    function renderQuiz(){
+      const box = document.getElementById('quizBox');
+      box.innerHTML = quiz.map((q,i)=>quizTemplate(i,q)).join('');
+    }
+    function gradeQuiz(){
+      let score = 0;
+      document.querySelectorAll('.q').forEach((qEl)=>{
+        const i = parseInt(qEl.dataset.i,10);
+        const chosen = qEl.querySelector('input[type=radio]:checked');
+        const res = qEl.querySelector('.result');
+        const exp = qEl.querySelector('.explain');
+        if (!chosen){
+          res.style.display='block'; res.className='result bad'; res.textContent='No answer selected';
+          exp.style.display='block'; exp.textContent='Tip: pick an option before grading.';
+          return;
+        }
+        const val = parseInt(chosen.value,10);
+        if (val === quiz[i].a){
+          score++;
+          res.style.display='block'; res.className='result ok'; res.textContent='Correct ✓';
+        }else{
+          res.style.display='block'; res.className='result bad'; res.textContent='Incorrect ✗';
+        }
+        exp.style.display='block'; exp.textContent='Explanation: ' + quiz[i].e;
+      });
+      document.getElementById('score').textContent = `Score: ${score}/${quiz.length}`;
+      localStorage.setItem('ib_score_light', score);
+    }
+    function resetQuiz(){
+      document.querySelectorAll('.q input[type=radio]').forEach(i=> i.checked=false);
+      document.querySelectorAll('.result,.explain').forEach(e=>{ e.style.display='none'; });
+      document.getElementById('score').textContent = 'Score: –/20';
+    }
+    // init
+    window.addEventListener('DOMContentLoaded', ()=>{
+      // theme restore
+      const saved = localStorage.getItem('ib_theme');
+      if (saved){ document.documentElement.setAttribute('data-theme', saved); }
+      renderCards();
+      renderQuiz();
+      const last = localStorage.getItem('ib_score_light');
+      if (last) document.getElementById('score').textContent = `Last Score: ${last}/20`;
+    });
+  </script>
+</body>
+</html>
