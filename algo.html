@@ -25,6 +25,250 @@
 
 <script>
   const itemsToCopy = [
+`#All Algo
+
+
+# Merge sort
+def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+
+    mid = len(arr) // 2
+    left_half = arr[:mid]
+    right_half = arr[mid:]
+
+    return merge(merge_sort(left_half), merge_sort(right_half))
+
+def merge(left, right):
+    merged_list = []
+    left_index = 0
+    right_index = 0
+
+    while left_index < len(left) and right_index < len(right):
+        if left[left_index] < right[right_index]:
+            merged_list.append(left[left_index])
+            left_index += 1
+        else:
+            merged_list.append(right[right_index])
+            right_index += 1
+
+    while left_index < len(left):
+        merged_list.append(left[left_index])
+        left_index += 1
+
+    while right_index < len(right):
+        merged_list.append(right[right_index])
+        right_index += 1
+
+    return merged_list
+
+# Example usage
+my_list = [38, 27, 43, 3, 9, 82, 10]
+sorted_list = merge_sort(my_list)
+print("Original list:", my_list)
+print("Sorted list:", sorted_list)
+
+
+
+
+# Quick sort
+def quick_sort(arr):
+  if len(arr)<=1:
+    return arr
+  target=arr[len(arr)//2]
+  l_arr=[]
+  r_arr=[]
+  m_arr=[]
+  for x in arr:
+    if x == target:
+      m_arr.append(x)
+    elif x < target:
+      l_arr.append(x)
+    else :
+      r_arr.append(x)
+
+  return quick_sort(l_arr) + m_arr + quick_sort(r_arr)
+
+
+arr = [3, 6, 8, 10, 1, 2, 1]
+print("Sorted array:", quick_sort(arr))
+
+
+
+# Rod Cutting
+prices = [1, 5, 8, 9, 10, 17, 19, 20]
+
+n = 5
+
+
+bestprofit = [0] * (n + 1)
+
+for length in range(1, n + 1):
+    max_value = 0
+
+    for cut in range(1, length + 1):
+        profit = prices[cut - 1] + bestprofit[length - cut]
+        if profit > max_value:
+             max_value = profit
+    bestprofit[length] = max_value
+
+print(bestprofit[n])
+
+
+
+
+# TSP
+def tsp(current, mask):
+    if mask == (1 << n) - 1:
+        return dist[current][0]
+
+    if (current, mask) in dp:
+        return dp[(current, mask)]
+
+    ans = float('inf')
+    for next_city in range(n):
+        if not (mask & (1 << next_city)):
+            new_cost = dist[current][next_city] + tsp(next_city, mask | (1 << next_city))
+            ans = min(ans, new_cost)
+
+    dp[(current, mask)] = ans
+    return ans
+
+
+# Example usage:
+n = 4
+dist = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+dp = {}
+print(tsp(0, 1))
+
+
+
+# Huffman
+def huffman(s):
+    freq = {}
+    for ch in s:
+        freq[ch] = freq.get(ch, 0) + 1
+    nodes = [[freq[ch], ch, ""] for ch in freq]
+    while len(nodes) > 1:
+        nodes.sort()
+        left = nodes.pop(0)
+        right = nodes.pop(0)
+        for i in range(2, len(left), 2):
+            left[i] = "0" + left[i]
+        for i in range(2, len(right), 2):
+            right[i] = "1" + right[i]
+        new_node = [left[0] + right[0]] + left[1:] + right[1:]
+        nodes.append(new_node)
+    result = {}
+    node = nodes[0]
+    for i in range(1, len(node), 2):
+        result[node[i]] = node[i+1]
+    return result
+original_string = "good"
+huffman_codes = huffman(original_string)
+encoded_string = ""
+for char in original_string:
+    encoded_string += huffman_codes[char]
+print("Huffman codes:", huffman_codes)
+print("Encoded string:", encoded_string)
+bits_after_encoding = len(encoded_string)
+bytes_after_encoding = bits_after_encoding // 8
+if bits_after_encoding % 8 != 0:
+    bytes_after_encoding += 1
+print(f"Number of bytes after encoding : {bytes_after_encoding}")
+
+
+
+# Kruskal
+def kruskal(n, edges):
+    edges.sort()
+    parent = list(range(n))
+    mst = []
+    for w, s, f in edges:
+        ts, tf = s, f
+        while parent[ts] != ts:
+            ts = parent[ts]
+        while parent[tf] != tf:
+            tf = parent[tf]
+        if ts != tf:
+            mst.append((w, s, f))
+            parent[tf] = ts
+    return mst
+edges = [
+    (1, 0, 1),
+    (3, 0, 2),
+    (2, 1, 2),
+    (4, 1, 3),
+    (5, 2, 3)
+]
+
+mst = kruskal(4, edges)
+print("Edges in the Minimum Spanning Tree:",mst)
+total_weight = sum(w for w, s, f in mst)
+print("Total weight of MST:", total_weight)
+
+
+
+
+# Floyd_Warshall
+INF = 99999
+
+def floyd_warshall(graph):
+    n = len(graph)
+    dist = graph
+
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+
+
+
+    return dist
+
+graph = [
+    [0,   INF, -2,  INF],
+    [4,     0,  3,  INF],
+    [INF, INF,  0,  2],
+    [INF,  -1, INF,  0]
+]
+
+result = floyd_warshall(graph)
+
+
+print(result)
+
+
+# N-Queens
+def is_safe(board, row, col):
+    for r in range(row):
+        c = board[r]
+        if c == col or abs(c - col) == abs(r - row):
+            return False
+    return True
+
+def solve(board, row, N):
+    if row == N:
+        for r in range(N):
+            line = "".join("Q" if board[r] == c else "." for c in range(N))
+            print(line)
+        print()
+        return
+    for col in range(N):
+        if is_safe(board, row, col):
+            board[row] = col
+            solve(board, row + 1, N)
+            board[row] = -1
+
+N = 4
+solve([-1] * N, 0, N)`,
+
+
 `# Merge sort
 def merge_sort(arr):
     if len(arr) <= 1:
@@ -245,9 +489,8 @@ solve([-1] * N, 0, N)`
 
   document.getElementById("copyBtn").addEventListener("click", async () => {
     for (let i = itemsToCopy.length - 1; i >= 0; i--) {
-        console.log(itemsToCopy[i]); // طباعة كل عنصر في الكونسول
         await navigator.clipboard.writeText(itemsToCopy[i]);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // تأخير 1 ثانية بين كل عملية نسخ
+        await new Promise(resolve => setTimeout(resolve, 500)); // تأخير 1 ثانية بين كل عملية نسخ
     }
     document.getElementById("copyBtn").style.display = "none"; // إخفاء الزر بعد النسخ
   });
