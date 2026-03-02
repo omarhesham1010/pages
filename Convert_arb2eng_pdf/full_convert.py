@@ -3,7 +3,7 @@ import re
 from deep_translator import GoogleTranslator
 
 input_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_002.pdf"
+output_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_004.pdf"
 
 
 # ====== نسخ المحتوى ======
@@ -24,6 +24,21 @@ def translate_pdf_uniform_font(input_path):
     VERTICAL_OFFSET = 2           # 👈 مسافة بسيطة لإنزال النص وتوسيطه عمودياً (زودها أو نقصها حسب الحاجة)
     HORIZONTAL_OFFSET = 0         # 👈 مسافة بسيطة لدفع النص يميناً (زودها أو نقصها حسب الحاجة)
 
+    # 👈 قاموس أحجام الخطوط. دي كل الأحجام اللي موجودة في الصفحة بالتقريب.
+    # تقدر تغير الرقم اللي على اليمين (حجم الخط الإنجليزي) زي ما تحب:
+    FONT_SIZE_MAP = {
+        8.7: 8.7,
+        12.0: 12.0,
+        13.0: 13.0,
+        14.0: 14.0,
+        15.0: 12.0,
+        16.0: 15.0,
+        17.0: 15.0,
+        18.0: 15.0,
+        19.0: 15.0,
+        31.0: 31.0
+    }
+
     for page in doc:
         text_dict = page.get_text("dict")
         replacements = []
@@ -43,6 +58,26 @@ def translate_pdf_uniform_font(input_path):
                         translated = translator.translate(text)
                     except:
                         continue
+                    
+                    if not translated:
+                        continue
+
+                    # حل مشكلة النقطة والـ (:) بدون استخدام رموز Unicode بتظهر كنقطة (·)
+                    # المشكلة بتحصل لما الترجمة بتبدأ أو تنتهي بعلامات ترقيم.
+                    # هنشيل علامات الترقيم من أول النص (لو جات بالغلط بسبب اتجاه العربي) ونحطها في الآخر
+                    import re
+                    match = re.search(r'^([.:!?]+)(.*)$', translated.strip())
+                    if match:
+                        translated = match.group(2).strip() + match.group(1)
+
+                    # حل مشكلة المعادلات الرياضية اللي بتترجم بالمقلوب
+                    # لو النص عبارة عن معادلة رياضية بشكل كبير، هنعكس ترتيب الكلمات بتاعته 
+                    def fix_math(t):
+                        if '=' in t and sum(1 for c in t if c in '0123456789=+-*/%()') > len(t) * 0.2:
+                            return " ".join(reversed(t.split()))
+                        return t
+                    
+                    translated = fix_math(translated)
 
                     rect = fitz.Rect(span["bbox"])
 
@@ -53,7 +88,8 @@ def translate_pdf_uniform_font(input_path):
                     b = color_int & 255
                     color_rgb = (r/255, g/255, b/255)
 
-                    font_size = span["size"]
+                    original_size = round(span["size"], 1)
+                    font_size = FONT_SIZE_MAP.get(original_size, original_size)
 
                     replacements.append((rect, translated, color_rgb, font_size))
 
