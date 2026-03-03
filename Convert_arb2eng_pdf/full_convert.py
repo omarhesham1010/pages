@@ -3,7 +3,7 @@ import re
 from deep_translator import GoogleTranslator
 
 input_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_004.pdf"
+output_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_002.pdf"
 
 
 # ====== نسخ المحتوى ======
@@ -32,11 +32,20 @@ def translate_pdf_uniform_font(input_path):
         13.0: 13.0,
         14.0: 14.0,
         15.0: 12.0,
-        16.0: 15.0,
+        16.0: 12.0,
         17.0: 15.0,
         18.0: 15.0,
         19.0: 15.0,
         31.0: 31.0
+    }
+
+    # 👈 قاموس الترجمات المخصصة (تقدر تضيف هنا أي كلمات عاوز تترجمها بنفسك)
+    # خلي بالك إن الكلمة لازم تكون مطابقة تماماً، بدون مسافات زيادة
+    CUSTOM_TRANSLATIONS = {
+        "الحســــــاب": "Mathematics",
+        "ب": "B",
+        # ضيف أي كلمات تانية هنا بنفس الطريقة:
+        # "الكلمة_العربي": "الترجمة_الإنجليزي",
     }
 
     for page in doc:
@@ -51,16 +60,78 @@ def translate_pdf_uniform_font(input_path):
                 for span in line["spans"]:
 
                     text = span["text"]
-                    if not text.strip():
+                    clean_text = text.strip()
+                    if not clean_text:
                         continue
 
-                    try:
-                        translated = translator.translate(text)
-                    except:
-                        continue
+                    # فحص الترجمة المخصصة
+                    import re
                     
-                    if not translated:
-                        continue
+                    # دالة لتنظيف وتصحيح أخطاء استخراج النص العربي من الـ PDF
+                    def normalize_arabic(text):
+                        # إزالة التطويل
+                        text = re.sub(r'ـ+', '', text)
+                        # تصليح أخطاء شائعة في استخراج الـ PDF المنعكس (حرف الـ 'ل' والـ 'ح'/'م')
+                        # كتير "الحساب" بتطلع "احلساب" أو "المعرفة" تطلع "املعرفة"
+                        text = text.replace("احل", "الح")
+                        text = text.replace("امل", "الم")
+                        text = text.replace("اجل", "الج")
+                        text = text.replace("اخل", "الخ")
+                        # توحيد أشكال الهمزة للألف
+                        text = re.sub(r'[أإآا]', 'ا', text)
+                        return text.strip()
+
+                    text_normalized = normalize_arabic(clean_text)
+                    
+                    translated = None
+
+                    # تجهيز نسخة مبسطة من القاموس بدون همزات وتطويل للمقارنة
+                    normalized_translations = {}
+                    for k, v in CUSTOM_TRANSLATIONS.items():
+                        norm_k = normalize_arabic(k)
+                        normalized_translations[norm_k] = v
+
+                    if text_normalized in normalized_translations:
+                        translated = normalized_translations[text_normalized]
+                    else:
+                        # 2. نترجم بجوجل الاول
+                        try:
+                            # نترجم النص الأصلي
+                            translated = translator.translate(text)
+                            if translated:
+                                
+                                # هل في أي كلمة من القاموس كجزء من النص؟
+                                text_for_google = text_normalized
+                                custom_applied = False
+                                
+                                # ترتيب الكلمات المخصصة من الأطول للأقصر عشان نتجنب تداخل الحروف (مثل "ب" مع كلمة "حساب")
+                                for ar_word in sorted(normalized_translations.keys(), key=len, reverse=True):
+                                    en_word = normalized_translations[ar_word]
+                                    
+                                    # نستخدم word boundaries عشان ما نبدلش حرف "ب" جوه كلمة زي "الحساب"
+                                    # بس بما إن العربي معقد شوية، هنستخدم مسافات أو بداية ونهاية السطر
+                                    # طريقة أبسط: لو الكلمة مساوية للنص بالكامل أو لو هي كلمة مستقلة
+                                    pattern = r'(?:^|\s)' + re.escape(ar_word) + r'(?:\s|$)'
+                                    if re.search(pattern, text_for_google):
+                                        # استبدال الكلمة بالإنجليزية
+                                        text_for_google = re.sub(pattern, f" {en_word} ", text_for_google)
+                                        custom_applied = True
+                                    # لو الكلمة مطابقة للنص جزئياً بدون مسافات (زي حرف 'ب') ممكن تعمل مشكلة
+                                    # لكن خليناها تبحث عن الكلمة المستقلة فقط.
+
+                                if custom_applied:
+                                    translated_custom = translator.translate(text_for_google)
+                                    if translated_custom:
+                                        translated = translated_custom
+                                
+                        except:
+                            continue
+                        
+                        if not translated:
+                            continue
+
+                        # إذا كانت الكلمة جزء من جملة، يمكننا أيضاً استبدالها بعد الترجمة (اختياري)
+                        # لكن الأفضل الاعتماد على الترجمة المخصصة للنصوص المنفصلة أولاً
 
                     # حل مشكلة النقطة والـ (:) بدون استخدام رموز Unicode بتظهر كنقطة (·)
                     # المشكلة بتحصل لما الترجمة بتبدأ أو تنتهي بعلامات ترقيم.
