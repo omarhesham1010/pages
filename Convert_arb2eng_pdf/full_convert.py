@@ -94,38 +94,64 @@ def translate_pdf_uniform_font(input_path):
                     if text_normalized in normalized_translations:
                         translated = normalized_translations[text_normalized]
                     else:
-                        # 2. نترجم بجوجل الاول
-                        try:
-                            # نترجم النص الأصلي
-                            translated = translator.translate(text)
-                            if translated:
-                                
-                                # هل في أي كلمة من القاموس كجزء من النص؟
-                                text_for_google = text_normalized
-                                custom_applied = False
-                                
-                                # ترتيب الكلمات المخصصة من الأطول للأقصر عشان نتجنب تداخل الحروف (مثل "ب" مع كلمة "حساب")
-                                for ar_word in sorted(normalized_translations.keys(), key=len, reverse=True):
-                                    en_word = normalized_translations[ar_word]
-                                    
-                                    # نستخدم word boundaries عشان ما نبدلش حرف "ب" جوه كلمة زي "الحساب"
-                                    # بس بما إن العربي معقد شوية، هنستخدم مسافات أو بداية ونهاية السطر
-                                    # طريقة أبسط: لو الكلمة مساوية للنص بالكامل أو لو هي كلمة مستقلة
-                                    pattern = r'(?:^|\s)' + re.escape(ar_word) + r'(?:\s|$)'
-                                    if re.search(pattern, text_for_google):
-                                        # استبدال الكلمة بالإنجليزية
-                                        text_for_google = re.sub(pattern, f" {en_word} ", text_for_google)
-                                        custom_applied = True
-                                    # لو الكلمة مطابقة للنص جزئياً بدون مسافات (زي حرف 'ب') ممكن تعمل مشكلة
-                                    # لكن خليناها تبحث عن الكلمة المستقلة فقط.
+                        # 2. فحص الأرقام والمعادلات الرياضية البحتة
+                        # لو النص كله أرقام ورموز رياضية وفواصل، مفيش داعي نبعته لجوجل عشان بيبوظ الترتيب
+                        if re.match(r'^[\d\s\.,،\-\+\*\/\^\(\)%:=]+$', clean_text):
+                            math_text = span["text"]
+                            math_text = math_text.replace('،', ',')
+                            # بما أن اتجاه الرياضيات في العربي بيكون اليمين لليسار، الفاصلة بتكون في آخر النص
+                            # لكن لما نكتب بالإنجليزي (يسار ليمين) محتاجين الفاصلة تكون في أول النص عشان تترسم صح
+                            if re.search(r',\s*$', math_text):
+                                math_text = re.sub(r'(.*?)(,\s*)$', r'\2\1', math_text)
+                            translated = math_text
+                        else:
+                            # 3. محاولة التقاط أسئلة الرياضيات المعكوسة
+                            # تحويل الأرقام العربية المشرقية إلى أرقام إنجليزية للمطابقة
+                            ar_to_en = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
+                            text_num_en = clean_text.translate(ar_to_en)
+                            
+                            # التقاط: "؟99  اىل3   كم عدد من" أو مشابهة
+                            q_match1 = re.search(r'؟\s*(\d+)\s*(?:اىل|إلى|الي)\s*(\d+)\s*كم عدد من', text_num_en)
+                            # التقاط: "؟ 99 ، 3 كم عدد محصور بني" أو مشابهة
+                            q_match2 = re.search(r'؟\s*(\d+)\s*،\s*(\d+)\s*كم عدد محصور', text_num_en)
+                            
+                            if q_match1:
+                                translated = f"How many numbers are there from {q_match1.group(2)} to {q_match1.group(1)}?"
+                            elif q_match2:
+                                translated = f"How many numbers are there between {q_match2.group(2)} and {q_match2.group(1)}?"
+                            else:
+                                # 4. نترجم بجوجل الاول
+                                try:
+                                    # نترجم النص الأصلي
+                                    translated = translator.translate(text)
+                                    if translated:
+                                        
+                                        # هل في أي كلمة من القاموس كجزء من النص؟
+                                        text_for_google = text_normalized
+                                        custom_applied = False
+                                        
+                                        # ترتيب الكلمات المخصصة من الأطول للأقصر عشان نتجنب تداخل الحروف (مثل "ب" مع كلمة "حساب")
+                                        for ar_word in sorted(normalized_translations.keys(), key=len, reverse=True):
+                                            en_word = normalized_translations[ar_word]
+                                            
+                                            # نستخدم word boundaries عشان ما نبدلش حرف "ب" جوه كلمة زي "الحساب"
+                                            # بس بما إن العربي معقد شوية، هنستخدم مسافات أو بداية ونهاية السطر
+                                            # طريقة أبسط: لو الكلمة مساوية للنص بالكامل أو لو هي كلمة مستقلة
+                                            pattern = r'(?:^|\s)' + re.escape(ar_word) + r'(?:\s|$)'
+                                            if re.search(pattern, text_for_google):
+                                                # استبدال الكلمة بالإنجليزية
+                                                text_for_google = re.sub(pattern, f" {en_word} ", text_for_google)
+                                                custom_applied = True
+                                            # لو الكلمة مطابقة للنص جزئياً بدون مسافات (زي حرف 'ب') ممكن تعمل مشكلة
+                                            # لكن خليناها تبحث عن الكلمة المستقلة فقط.
 
-                                if custom_applied:
-                                    translated_custom = translator.translate(text_for_google)
-                                    if translated_custom:
-                                        translated = translated_custom
-                                
-                        except:
-                            continue
+                                        if custom_applied:
+                                            translated_custom = translator.translate(text_for_google)
+                                            if translated_custom:
+                                                translated = translated_custom
+                                        
+                                except:
+                                    continue
                         
                         if not translated:
                             continue
