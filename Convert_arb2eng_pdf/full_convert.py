@@ -191,79 +191,95 @@ def simple_shift_by_type(input_path):
     else:
         doc = input_path
 
-    for page in doc:
-        contents = page.get_contents()
-        width = page.rect.width
-
-        for xref in contents:
+    def process_stream(doc, xref, width):
+        try:
             raw = doc.xref_stream(xref).decode("utf-8", errors="ignore")
-            lines = raw.split("\n")
+        except Exception:
+            return
+            
+        lines = raw.split("\n")
+        depth = 0  # لمتابعة nested q/Q
+        new_lines = []
 
-            depth = 0  # لمتابعة nested q/Q
-            new_lines = []
+        for line in lines:
+            stripped = line.strip()
 
-            for line in lines:
+            # ---- Track nesting ----
+            if re.match(r"^\s*q\b", line):
+                depth += 1
 
-                stripped = line.strip()
+            if re.match(r"^\s*Q\b", line):
+                depth = max(depth - 1, 0)
 
-                # ---- Track nesting ----
-                if re.match(r"^\s*q\b", line):
-                    depth += 1
+            # ---- Td (Text space) ----
+            td_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Td", line)
+            if td_match:
+                new_line = line
+                new_lines.append(new_line)
+                continue
 
-                if re.match(r"^\s*Q\b", line):
-                    depth = max(depth - 1, 0)
+            # ---- Tm (Text matrix) ----
+            tm_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Tm", line)
+            if tm_match:
+                a,b,c,d,e,f = map(float, tm_match.groups())
+                new_a = -a
+                new_c = -c
+                new_e_value = width - e
+                new_line = f"{new_a} {b} {new_c} {d} {new_e_value} {f} Tm"
+                new_lines.append(new_line)
+                continue
 
-                # ---- Td (Text space) ----
-                td_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Td", line)
-                if td_match:
-                    new_line = line
-                    new_lines.append(new_line)
-                    continue
+            # ---- cm (Graphics space) ----
+            cm_match = re.search(
+                r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+cm",
+                line
+            )
+            if cm_match:
+                a_str, b_str, c_str, d_str, e_str, f_str = cm_match.groups()
 
-                # ---- Tm (Text matrix) ----
-                tm_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Tm", line)
-                if tm_match:
-                    a,b,c,d,e,f = map(float, tm_match.groups())
-                    new_a = -a
-                    new_c = -c
-                    new_e_value = width - e
-                    new_line = f"{new_a} {b} {new_c} {d} {new_e_value} {f} Tm"
-                    new_lines.append(new_line)
-                    continue
+                a = float(a_str)
+                c = float(c_str)
+                e = float(e_str)
 
-                # ---- cm (Graphics space) ----
-                cm_match = re.search(
-                    r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+cm",
-                    line
-                )
-                if cm_match:
-                    a_str, b_str, c_str, d_str, e_str, f_str = cm_match.groups()
+                # نفس عدد الخانات العشرية بتاعة e
+                if "." in e_str:
+                    decimal_places = len(e_str.split(".")[1])
+                else:
+                    decimal_places = 0
 
-                    a = float(a_str)
-                    c = float(c_str)
-                    e = float(e_str)
-
-                    # نفس عدد الخانات العشرية بتاعة e
-                    if "." in e_str:
-                        decimal_places = len(e_str.split(".")[1])
-                    else:
-                        decimal_places = 0
-
-                    new_a = -a
-                    new_c = -c
-                    new_e_value = width - e
-                    new_e = f"{new_e_value:.{decimal_places}f}"
+                new_a = -a
+                new_c = -c
+                new_e_value = width - e
+                new_e = f"{new_e_value:.{decimal_places}f}"
 
 
-                    new_line = f"q {new_a} {b_str} {new_c} {d_str} {new_e} {f_str} cm"
-                    
-                    new_lines.append(new_line)
-                    continue
+                new_line = f"q {new_a} {b_str} {new_c} {d_str} {new_e} {f_str} cm"
+                
+                new_lines.append(new_line)
+                continue
 
-                new_lines.append(line)
+            new_lines.append(line)
 
-            new_stream = "\n".join(new_lines)
+        new_stream = "\n".join(new_lines)
+        if new_stream != raw:
             doc.update_stream(xref, new_stream.encode("utf-8"))
+
+    for page in doc:
+        width = page.rect.width
+        
+        # 1. تطبيق النقل على محتوى الصفحة المباشر
+        contents = page.get_contents()
+        for xref in contents:
+            process_stream(doc, xref, width)
+            
+        # 2. تطبيق النقل على أي عناصر Form XObjects (زي الهيدر والفوتر)
+        for xo in page.get_xobjects():
+            # xo عبارة عن (xref, name, invoker, bbox)
+            xref = xo[0]
+            if doc.xref_is_stream(xref):
+                obj_str = doc.xref_object(xref)
+                if '/Subtype /Form' in obj_str:
+                    process_stream(doc, xref, width)
 
     return doc
 
