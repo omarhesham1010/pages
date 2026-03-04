@@ -1,9 +1,10 @@
 import fitz  # PyMuPDF
 import re
 from deep_translator import GoogleTranslator
+from tqdm import tqdm
 
 input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_002.pdf"
+output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_003.pdf"
 
 
 # ====== نسخ المحتوى ======
@@ -48,7 +49,7 @@ def translate_pdf_uniform_font(input_path):
         # "الكلمة_العربي": "الترجمة_الإنجليزي",
     }
 
-    for page in doc:
+    for page in tqdm(doc, desc="جاري ترجمة الصفحات...", unit="صفحة"):
         text_dict = page.get_text("dict")
         replacements = []
 
@@ -184,7 +185,6 @@ def translate_pdf_uniform_font(input_path):
                         has_math_symbol = any(c in t for c in '=+-*/')
                         
                         if has_math_word and has_math_symbol:
-                            print(f"INPUT INTO FIX_MATH: {t}")
                             t_new = t.replace('الكبير', 'Large').replace('الأكبر', 'Large').replace('big', 'Large').replace('major', 'Large').replace('Major', 'Large').replace('كبير', 'Large').replace('large', 'Large')
                             t_new = t_new.replace('الصغير', 'Small').replace('الأصغر', 'Small').replace('minor', 'Small').replace('Minor', 'Small').replace('صغير', 'Small').replace('small', 'Small')
                             
@@ -339,7 +339,7 @@ def simple_shift_by_type(input_path):
         if new_stream != raw:
             doc.update_stream(xref, new_stream.encode("utf-8"))
 
-    for page in doc:
+    for page in tqdm(doc, desc="جاري تعديل التخطيط...", unit="صفحة"):
         width = page.rect.width
         
         # 1. تطبيق النقل على محتوى الصفحة المباشر
