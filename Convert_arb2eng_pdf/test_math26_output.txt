@@ -1,0 +1,3 @@
+Result for 'Large = Small - 1':     = Large - Small - 1
+Result for 'large = small - 1':     = Large - Small - 1
+Result for '= big - small - 1':     = Large - Small - 1

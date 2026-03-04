@@ -1,0 +1,7 @@
+INPUT INTO FIX_MATH: 1 - minor = major
+INPUT INTO FIX_MATH: 1 + minor = major
+INPUT INTO FIX_MATH: 1 + minor = major
+INPUT INTO FIX_MATH: 95 = 1 - 3 - 99 = 1 - Minor - = Major
+INPUT INTO FIX_MATH: 14 = 1 - 35 - 50 = 1 - major - minor
+INPUT INTO FIX_MATH: 97 = 1 + 3 - 99 = 1 + minor - = major
+تم الحفظ في: /home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_002.pdf ✅

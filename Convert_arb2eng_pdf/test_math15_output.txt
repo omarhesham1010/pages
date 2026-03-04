@@ -1,0 +1,2 @@
+Google translated: = big - small - 1
+Result logic: = Large - Small - 1

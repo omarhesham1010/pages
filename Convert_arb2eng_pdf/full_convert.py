@@ -2,8 +2,8 @@ import fitz  # PyMuPDF
 import re
 from deep_translator import GoogleTranslator
 
-input_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/run/media/omar-h/38029BDD029B9E86/Repos/pages/Convert_arb2eng_pdf/book_002.pdf"
+input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
+output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_002.pdf"
 
 
 # ====== نسخ المحتوى ======
@@ -114,11 +114,19 @@ def translate_pdf_uniform_font(input_path):
                             q_match1 = re.search(r'؟\s*(\d+)\s*(?:اىل|إلى|الي)\s*(\d+)\s*كم عدد من', text_num_en)
                             # التقاط: "؟ 99 ، 3 كم عدد محصور بني" أو مشابهة
                             q_match2 = re.search(r'؟\s*(\d+)\s*،\s*(\d+)\s*كم عدد محصور', text_num_en)
+                            # التقاط أسئلة الترتيب المعكوسة
+                            q_match3 = re.search(r'(\d+)\s*وكان ترتيب أخوه\s*(\d+)\s*ترتيب (.*?)\s+(يف|في)\s+الصف\s+هو', text_num_en)
                             
                             if q_match1:
                                 translated = f"How many numbers are there from {q_match1.group(2)} to {q_match1.group(1)}?"
                             elif q_match2:
                                 translated = f"How many numbers are there between {q_match2.group(2)} and {q_match2.group(1)}?"
+                            elif q_match3:
+                                try:
+                                    name = translator.translate(q_match3.group(3))
+                                except:
+                                    name = q_match3.group(3)
+                                translated = f"{name}'s rank in the class is {q_match3.group(2)} and his brother's rank was {q_match3.group(1)}"
                             else:
                                 # 4. نترجم بجوجل الاول
                                 try:
@@ -170,6 +178,47 @@ def translate_pdf_uniform_font(input_path):
                     # حل مشكلة المعادلات الرياضية اللي بتترجم بالمقلوب
                     # لو النص عبارة عن معادلة رياضية بشكل كبير، هنعكس ترتيب الكلمات بتاعته 
                     def fix_math(t):
+                        t_lower = t.lower()
+                        math_words = ['major', 'minor', 'large', 'small', 'big', 'الكبير', 'الصغير', 'الأكبر', 'الأصغر', 'كبير', 'صغير']
+                        has_math_word = any(w in t_lower for w in math_words)
+                        has_math_symbol = any(c in t for c in '=+-*/')
+                        
+                        if has_math_word and has_math_symbol:
+                            print(f"INPUT INTO FIX_MATH: {t}")
+                            t_new = t.replace('الكبير', 'Large').replace('الأكبر', 'Large').replace('big', 'Large').replace('major', 'Large').replace('Major', 'Large').replace('كبير', 'Large').replace('large', 'Large')
+                            t_new = t_new.replace('الصغير', 'Small').replace('الأصغر', 'Small').replace('minor', 'Small').replace('Minor', 'Small').replace('صغير', 'Small').replace('small', 'Small')
+                            
+                            # Google translates isolated "= الكبير - الصغير - 1" into "Large = Small - 1"
+                            t_new = re.sub(r'Large\s*=\s*Small', '= Large - Small', t_new)
+                            
+                            tokens = [tok.strip() for tok in re.split(r'([=+\-*/])', t_new) if tok.strip()]
+                            
+                            # Determine if we should reverse based on the position of the equals sign or layout
+                            if t_new.strip().startswith('='):
+                                # It's naturally left-to-right (very rare for Arabic PDF extraction of equations)
+                                # but keep spacing unified.
+                                return " ".join(tokens)
+                            else:
+                                tokens.reverse()
+                                reversed_t = " ".join(tokens)
+                                
+                                # Google translates the messy extraction as "95 = 1 - 3 - 99 = 1 - Minor - = Major"
+                                # Since it's completely backward, if we reverse it raw: "Major = - Minor - 1 = 99 - 3 - 1 = 95"
+                                # We need to change "Major = - Minor" -> "= Major - Minor".
+                                reversed_t = re.sub(r'(?i)Large\s*=\s*-\s*Small', '= Large - Small', reversed_t)
+                                reversed_t = re.sub(r'(?i)Small\s*=\s*-\s*Large', '= Small - Large', reversed_t)
+                                reversed_t = re.sub(r'(?i)Large\s*=\s*\+\s*Small', '= Large + Small', reversed_t)
+                                reversed_t = re.sub(r'(?i)Small\s*=\s*\+\s*Large', '= Small + Large', reversed_t)
+                                
+                                # Sometimes parsing anomalies leave "Small - Large" which is mathematically wrong for these questions
+                                reversed_t = re.sub(r'(?i)Small\s*-\s*Large', 'Large - Small', reversed_t)
+                                
+                                # If PyMuPDF extracts "الكبير = الصغير - 1" it gets reversed into "Large = Small - 1".
+                                # The user wants these formulas formatted as "= Large - Small - 1".
+                                reversed_t = re.sub(r'(?i)^Large\s*=\s*Small', '= Large - Small', reversed_t)
+                                
+                                return reversed_t
+                            
                         if '=' in t and sum(1 for c in t if c in '0123456789=+-*/%()') > len(t) * 0.2:
                             return " ".join(reversed(t.split()))
                         return t

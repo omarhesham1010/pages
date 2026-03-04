@@ -1,0 +1,7 @@
+DEBUG MATH: 1 - minor = major -> Large = Small - 1
+DEBUG MATH: 1 + minor = major -> Large = Small + 1
+DEBUG MATH: 1 + minor = major -> Large = Small + 1
+DEBUG MATH: 95 = 1 - 3 - 99 = 1 - Minor - = Major -> = Large - Small - 1 = 99 - 3 - 1 = 95
+DEBUG MATH: 14 = 1 - 35 - 50 = 1 - major - minor -> Large - Small - 1 = 50 - 35 - 1 = 14
+DEBUG MATH: 97 = 1 + 3 - 99 = 1 + minor - = major -> = Large - Small + 1 = 99 - 3 + 1 = 97
+تم الحفظ في: /home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_002.pdf ✅

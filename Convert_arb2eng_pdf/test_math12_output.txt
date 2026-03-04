@@ -1,0 +1,21 @@
+
+--- Testing Extract: 14 = 1 - 35 50 - = 1 - الصغير – الكبير
+Google translated: 14 = 1 - 35 50 - = 1 - small - large
+  Tokens BEFORE reverse check: ['14', '=', '1', '-', '35 50', '-', '=', '1', '-', 'Small', '-', 'Large']
+  Tokens AFTER reverse check: Large - Small - 1 = - 35 50 - 1 = 14
+Result:
+Large - Small - 1 = - 35 50 - 1 = 14
+
+--- Testing Extract: الكبير – الصغير - 1 = – 50 35 - 1 = 14
+Google translated: Large – Small - 1 = – 50 35 - 1 = 14
+  Tokens BEFORE reverse check: ['Large', '-', 'Small', '-', '1', '=', '-', '50 35', '-', '1', '=', '14']
+  Tokens AFTER reverse check: 14 = 1 - 50 35 - = 1 - Small - Large
+Result:
+14 = 1 - 50 35 - = 1 - Small - Large
+
+--- Testing Extract: 14 = 1 - 35 50 - = 1 - الصغير - الكبير
+Google translated: 14 = 1 - 35 50 - = 1 - small - large
+  Tokens BEFORE reverse check: ['14', '=', '1', '-', '35 50', '-', '=', '1', '-', 'Small', '-', 'Large']
+  Tokens AFTER reverse check: Large - Small - 1 = - 35 50 - 1 = 14
+Result:
+Large - Small - 1 = - 35 50 - 1 = 14

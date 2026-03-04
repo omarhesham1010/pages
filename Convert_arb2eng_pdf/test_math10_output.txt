@@ -1,0 +1,9 @@
+Google translated (95 = 1 - 3 - 99 = 1 - الصغير - الكبير =):
+95 = 1 - 3 - 99 = 1 - small - large =
+Google translated (= الكبير - الصغير - 1 = 99 - 3 - 1 = 95):
+= Large - Small - 1 = 99 - 3 - 1 = 95
+---
+PDF extraction back-translated:
+95 = 1 - 3 - 99 = 1 - small - large =
+fix_math outputs:
+= Large - Small - 1 = 99 - 3 - 1 = 95

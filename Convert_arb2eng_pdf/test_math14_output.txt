@@ -1,0 +1,2 @@
+User says output was: Small - Large - 1 = 50 - 35 - 1 = 14
+Large - Small - 1 = - 35 50 - 1 = 14
