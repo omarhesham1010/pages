@@ -10,7 +10,7 @@ def save_first_page(input_pdf_path, output_pdf_path):
         return
     
     # خُد أول صفحة
-    first_page = reader.pages[0]
+    first_page = reader.pages[191]
     
     # اعمل Writer جديد
     writer = PdfWriter()
@@ -23,4 +23,4 @@ def save_first_page(input_pdf_path, output_pdf_path):
     print("تم حفظ أول صفحة بنجاح")
 
 # مثال استخدام
-save_first_page("original_book.pdf", "book_0.pdf")
+save_first_page("original_book.pdf", "book_3.pdf")

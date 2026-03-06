@@ -3,10 +3,6 @@ import re
 from deep_translator import GoogleTranslator
 from tqdm import tqdm
 
-input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_01.pdf"
-
-
 # ====== نسخ المحتوى ======
 def copy(input_path):
     doc = fitz.open(input_path)
@@ -21,12 +17,10 @@ def translate_pdf_uniform_font(input_path):
         doc = input_path
     translator = GoogleTranslator(source='ar', target='en')
 
-    UNIFORM_FONT = "Times-Roman"  # 👈 تقدر تغيره
-    VERTICAL_OFFSET = 2           # 👈 مسافة بسيطة لإنزال النص وتوسيطه عمودياً (زودها أو نقصها حسب الحاجة)
-    HORIZONTAL_OFFSET = 0         # 👈 مسافة بسيطة لدفع النص يميناً (زودها أو نقصها حسب الحاجة)
+    UNIFORM_FONT = "Times-Roman"
+    VERTICAL_OFFSET = 2
+    HORIZONTAL_OFFSET = 0
 
-    # 👈 قاموس أحجام الخطوط. دي كل الأحجام اللي موجودة في الصفحة بالتقريب.
-    # تقدر تغير الرقم اللي على اليمين (حجم الخط الإنجليزي) زي ما تحب:
     FONT_SIZE_MAP = {
         8.7: 8.7,
         12.0: 12.0,
@@ -40,8 +34,6 @@ def translate_pdf_uniform_font(input_path):
         31.0: 31.0
     }
 
-    # 👈 قاموس الترجمات المخصصة (تقدر تضيف هنا أي كلمات عاوز تترجمها بنفسك)
-    # خلي بالك إن الكلمة لازم تكون مطابقة تماماً، بدون مسافات زيادة
     CUSTOM_TRANSLATIONS = {
         "الحســــــاب": "Mathematics",
         "ب": "B",
@@ -49,17 +41,21 @@ def translate_pdf_uniform_font(input_path):
         # "الكلمة_العربي": "الترجمة_الإنجليزي",
     }
 
-    for page in tqdm(doc, desc="جاري ترجمة الصفحات...", unit="صفحة"):
-        text_dict = page.get_text("dict")
-        replacements = []
+    # Store all replacements per page before applying global matrix
+    all_pages_replacements = []
 
+    for page_idx, page in enumerate(tqdm(doc, desc="جاري ترجمة الصفحات...", unit="صفحة")):
+        width = page.rect.width
+        text_dict = page.get_text("dict")
+        page_replacements = [] # Store replacements for the current page
+
+        # 1. استخراج النص وإضافة علامات الحذف (Redactions)
         for block in text_dict["blocks"]:
             if block["type"] != 0:
                 continue
 
             for line in block["lines"]:
                 for span in line["spans"]:
-
                     text = span["text"]
                     clean_text = text.strip()
                     if not clean_text:
@@ -165,8 +161,8 @@ def translate_pdf_uniform_font(input_path):
                         if not translated:
                             continue
 
-                        # إذا كانت الكلمة جزء من جملة، يمكننا أيضاً استبدالها بعد الترجمة (اختياري)
-                        # لكن الأفضل الاعتماد على الترجمة المخصصة للنصوص المنفصلة أولاً
+                    # إذا كانت الكلمة جزء من جملة، يمكننا أيضاً استبدالها بعد الترجمة (اختياري)
+                    # لكن الأفضل الاعتماد على الترجمة المخصصة للنصوص المنفصلة أولاً
 
                     # حل مشكلة النقطة والـ (:) بدون استخدام رموز Unicode بتظهر كنقطة (·)
                     # المشكلة بتحصل لما الترجمة بتبدأ أو تنتهي بعلامات ترقيم.
@@ -237,19 +233,43 @@ def translate_pdf_uniform_font(input_path):
                     original_size = round(span["size"], 1)
                     font_size = FONT_SIZE_MAP.get(original_size, original_size)
 
-                    replacements.append((rect, translated, color_rgb, font_size))
-
+                    # نحتفظ بالبيانات للاستخدام لاحقاً (قبل التحويل العكسي)
+                    page_replacements.append((rect, translated, color_rgb, font_size))
+                    
+                    # 2. إضافة Redact Annotation في نفس المكان
                     page.add_redact_annot(rect)
 
+        # تنفيذ مسح النصوص المحددة - خطوة ضرورية قبل التحويل العكسي
         page.apply_redactions()
 
-        # 🎯 خوارزمية البحث عن الأشكال الهندسية وتوسيط الخيارات بداخلها
+        # 3. عكس الصفحة بالكامل أفقياً (Mirror Matrix)
+        page.clean_contents()
+        contents = page.get_contents()
+        if contents:
+            xref = contents[0]
+            stream = doc.xref_stream(xref)
+            new_stream = f"q -1 0 0 1 {width} 0 cm\n".encode("utf-8") + stream + b"\nQ"
+            doc.update_stream(xref, new_stream)
+        
+        all_pages_replacements.append(page_replacements)
+
+    # بما أننا طبقنا الـ Stream Matrix، يجب أن نحفظ المصفوفة ونقرأ المصفوفات النظيفة
+    doc_bytes = doc.write()
+    doc.close() # Close the old document object
+    doc = fitz.open("pdf", doc_bytes) # Open a new document object with applied transformations
+
+    # المرحلة الثانية: معالجة النصوص وحقنها بعد تنظيف الصفحة
+    for page_idx, page in enumerate(tqdm(doc, desc="جاري ضبط التخطيط وإدخال النصوص...", unit="صفحة")):
+        width = page.rect.width
+        
+        # 4. استخراج الأشكال الهندسية بعد العكس (عشان التوسيط)
+        # لحسن الحظ Matrix تطبق فوراً على استخراج Get Drawings
         paths = page.get_drawings()
         shapes = []
         for p in paths:
             r = p["rect"]
             # استبعاد إطارات الصفحة الكبيرة جداً أو النقاط الصغيرة جداً
-            if r.width < page.rect.width * 0.9 and r.width > 5 and r.height > 5:
+            if r.width < width * 0.9 and r.width > 5 and r.height > 5:
                 shapes.append(r)
                 
         def get_best_shape_for_rect(text_rect):
@@ -279,7 +299,21 @@ def translate_pdf_uniform_font(input_path):
         # 1. تقسيم العناصر إلى عمودين (يمين ويسار) عشان ما نخلطش السطور
         left_col = []
         right_col = []
-        for r in replacements:
+
+        # Retrieve replacements for the current page
+        current_page_replacements = all_pages_replacements[page_idx]
+
+        # Transform original rects to mirrored rects for layout calculations
+        mirrored_replacements = []
+        for r_item in current_page_replacements:
+            rect, translated, color_rgb, font_size = r_item
+            # Apply mirror transformation to the original rect
+            new_x1 = width - rect.x0
+            new_x0 = width - rect.x1
+            mirrored_rect = fitz.Rect(new_x0, rect.y0, new_x1, rect.y1)
+            mirrored_replacements.append((mirrored_rect, translated, color_rgb, font_size))
+
+        for r in mirrored_replacements:
             rect, translated_text, color_rgb, font_size = r
             
             # --- مراجعة الحجم والتوسيط داخل الأشكال أولاً ---
@@ -363,6 +397,17 @@ def translate_pdf_uniform_font(input_path):
             x = rect.x0 + HORIZONTAL_OFFSET
             y = rect.y0 + font_size + VERTICAL_OFFSET
 
+            # -- تعديلات بصرية يدوية لبعض الكلمات المحددة --
+            # ترحيل اسم "Prepared by Professor" لليسار حتى يظهر بشكل كامل ولا يختفي
+            if "Prepared by" in translated and "Ramadan" in translated:
+                x -= 35.0  # دفع النص لليسار بمقدار 35 نقطة
+                if x <= 0:
+                    x = 10.0  # منع النص من الخروج برة الصفحة
+            
+            # إنزال "2026 legend" للأسفل قليلاً بناءً على طلب المستخدم
+            if "2026 legend" in translated.lower():
+                y += 3.0   # دفع النص للأسفل بمقدار 4 نقاط
+
             page.insert_text(
                 (x, y),
                 translated,
@@ -373,105 +418,6 @@ def translate_pdf_uniform_font(input_path):
 
     return doc
 
-# ====== layout =====
-def simple_shift_by_type(input_path):
-    if isinstance(input_path, str):
-        doc = fitz.open(input_path)
-    else:
-        doc = input_path
-
-    def process_stream(doc, xref, width):
-        try:
-            raw = doc.xref_stream(xref).decode("utf-8", errors="ignore")
-        except Exception:
-            return
-            
-        lines = raw.split("\n")
-        depth = 0  # لمتابعة nested q/Q
-        new_lines = []
-
-        for line in lines:
-            stripped = line.strip()
-
-            # ---- Track nesting ----
-            if re.match(r"^\s*q\b", line):
-                depth += 1
-
-            if re.match(r"^\s*Q\b", line):
-                depth = max(depth - 1, 0)
-
-            # ---- Td (Text space) ----
-            td_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Td", line)
-            if td_match:
-                new_line = line
-                new_lines.append(new_line)
-                continue
-
-            # ---- Tm (Text matrix) ----
-            tm_match = re.search(r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+Tm", line)
-            if tm_match:
-                a,b,c,d,e,f = map(float, tm_match.groups())
-                new_a = -a
-                new_c = -c
-                new_e_value = width - e
-                new_line = f"{new_a} {b} {new_c} {d} {new_e_value} {f} Tm"
-                new_lines.append(new_line)
-                continue
-
-            # ---- cm (Graphics space) ----
-            cm_match = re.search(
-                r"(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s+cm",
-                line
-            )
-            if cm_match:
-                a_str, b_str, c_str, d_str, e_str, f_str = cm_match.groups()
-
-                a = float(a_str)
-                c = float(c_str)
-                e = float(e_str)
-
-                # نفس عدد الخانات العشرية بتاعة e
-                if "." in e_str:
-                    decimal_places = len(e_str.split(".")[1])
-                else:
-                    decimal_places = 0
-
-                new_a = -a
-                new_c = -c
-                new_e_value = width - e
-                new_e = f"{new_e_value:.{decimal_places}f}"
-
-
-                new_line = f"q {new_a} {b_str} {new_c} {d_str} {new_e} {f_str} cm"
-                
-                new_lines.append(new_line)
-                continue
-
-            new_lines.append(line)
-
-        new_stream = "\n".join(new_lines)
-        if new_stream != raw:
-            doc.update_stream(xref, new_stream.encode("utf-8"))
-
-    for page in tqdm(doc, desc="جاري تعديل التخطيط...", unit="صفحة"):
-        width = page.rect.width
-        
-        # 1. تطبيق النقل على محتوى الصفحة المباشر
-        contents = page.get_contents()
-        for xref in contents:
-            process_stream(doc, xref, width)
-            
-        # 2. تطبيق النقل على أي عناصر Form XObjects (زي الهيدر والفوتر)
-        for xo in page.get_xobjects():
-            # xo عبارة عن (xref, name, invoker, bbox)
-            xref = xo[0]
-            if doc.xref_is_stream(xref):
-                obj_str = doc.xref_object(xref)
-                if '/Subtype /Form' in obj_str:
-                    process_stream(doc, xref, width)
-
-    return doc
-
 # ====== حفظ الملف ======
 def save_pdf(doc, output_path):
     doc.save(output_path)
@@ -479,10 +425,30 @@ def save_pdf(doc, output_path):
     return output_path
 
 # ====== التنفيذ ======
-# ترتيب التشغيل مهم جداً: يجب تطبيق تغيير الاتجاه (shift) أولاً
-# ثم تطبيق الترجمة (translate) حتى لا يتم عكس النص الإنجليزي
+# input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Statistics_Book.pdf"
+# output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Statistics_Book_00.pdf"
+# document = copy(input_file)
+# document = translate_pdf_uniform_font(document)
+# result_path = save_pdf(document, output_file)
+# print("تم الحفظ في:", result_path, "✅")
+
+input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Gabr_Book.pdf"
+output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Gabr_Book_00.pdf"
 document = copy(input_file)
-document = simple_shift_by_type(document)
 document = translate_pdf_uniform_font(document)
 result_path = save_pdf(document, output_file)
 print("تم الحفظ في:", result_path, "✅")
+
+# input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Handsa_Book.pdf"
+# output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Handsa_Book_00.pdf"
+# document = copy(input_file)
+# document = translate_pdf_uniform_font(document)
+# result_path = save_pdf(document, output_file)
+# print("تم الحفظ في:", result_path, "✅")
+
+# input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Math_Book.pdf"
+# output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/Math_Book_00.pdf"
+# document = copy(input_file)
+# document = translate_pdf_uniform_font(document)
+# result_path = save_pdf(document, output_file)
+# print("تم الحفظ في:", result_path, "✅")
