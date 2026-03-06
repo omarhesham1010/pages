@@ -4,7 +4,7 @@ from deep_translator import GoogleTranslator
 from tqdm import tqdm
 
 input_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_0.pdf"
-output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_003.pdf"
+output_file = "/home/omar-h/Repos/pages/Convert_arb2eng_pdf/book_01.pdf"
 
 
 # ====== نسخ المحتوى ======
@@ -243,8 +243,81 @@ def translate_pdf_uniform_font(input_path):
 
         page.apply_redactions()
 
+        # 🚀 خوارزمية منع التداخل (Anti-Overlap)
+        page_width = page.rect.width
+        page_midpoint = page_width / 2.0
+        
+        # 1. تقسيم العناصر إلى عمودين (يمين ويسار) عشان ما نخلطش السطور
+        left_col = []
+        right_col = []
+        for r in replacements:
+            rect = r[0]
+            if rect.x0 < page_midpoint:
+                left_col.append(r)
+            else:
+                right_col.append(r)
+                
+        def shift_column_overlaps(col):
+            if not col:
+                return []
+                
+            # ترتيب من فوق لتحت الطولياً
+            col.sort(key=lambda r: r[0].y0)
+            
+            lines = []
+            current_line = []
+            
+            # تجميع العناصر اللي على نفس السطر المربع (تفاوت بسيط في حرف الـ Y)
+            for r in col:
+                rect = r[0] # Rect
+                font_size = r[3]
+                if not current_line:
+                    current_line.append(r)
+                    continue
+                    
+                prev_rect = current_line[-1][0]
+                # لو الفرق في الـ Y صغير جداً (أقل من نصف حجم الخط)، فهما على نفس السطر
+                if abs(rect.y0 - prev_rect.y0) < font_size * 0.5:
+                    current_line.append(r)
+                else:
+                    lines.append(current_line)
+                    current_line = [r]
+            if current_line:
+                lines.append(current_line)
+                
+            shifted_col = []
+            for line in lines:
+                # ترتيب العناصر داخل نفس السطر من اليسار لليمين
+                line.sort(key=lambda r: r[0].x0)
+                
+                current_x_end = None
+                
+                for r in line:
+                    rect, translated_text, color_rgb, font_size = r
+                    
+                    # هل مساحة النص ده هتدخل في المساحة بتاعة النص اللي قبليه؟
+                    if current_x_end is not None and rect.x0 < current_x_end:
+                        # ترحيل النص ده لليمين شوية عشان ما يخبطش في اللي قبله
+                        shift_amount = current_x_end - rect.x0 + 3.0 # + مسافة 3 نقط أمان
+                        rect.x0 += shift_amount
+                        rect.x1 += shift_amount
+                        
+                    # حساب العرض الحقيقي للنص الإنجليزي بعد الترجمة
+                    text_width = fitz.get_text_length(translated_text, fontname=UNIFORM_FONT, fontsize=font_size)
+                    
+                    # حفظ نهاية النص ده عشان نقارنه باللي بعده
+                    current_x_end = rect.x0 + text_width
+                    
+                    shifted_col.append((rect, translated_text, color_rgb, font_size))
+                    
+            return shifted_col
+
+        shifted_left = shift_column_overlaps(left_col)
+        shifted_right = shift_column_overlaps(right_col)
+        final_replacements = shifted_left + shifted_right
+
         # ✍ كتابة النص بنفس الفونت الموحد
-        for rect, translated, color_rgb, font_size in replacements:
+        for rect, translated, color_rgb, font_size in final_replacements:
 
             x = rect.x0 + HORIZONTAL_OFFSET
             y = rect.y0 + font_size + VERTICAL_OFFSET
