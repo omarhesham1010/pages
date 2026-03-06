@@ -243,6 +243,35 @@ def translate_pdf_uniform_font(input_path):
 
         page.apply_redactions()
 
+        # 🎯 خوارزمية البحث عن الأشكال الهندسية وتوسيط الخيارات بداخلها
+        paths = page.get_drawings()
+        shapes = []
+        for p in paths:
+            r = p["rect"]
+            # استبعاد إطارات الصفحة الكبيرة جداً أو النقاط الصغيرة جداً
+            if r.width < page.rect.width * 0.9 and r.width > 5 and r.height > 5:
+                shapes.append(r)
+                
+        def get_best_shape_for_rect(text_rect):
+            # إيجاد الشكل الهندسي الذي يحتوي أو يتقاطع بشكل أكبر مع مساحة النص
+            best_shape = None
+            max_area = 0
+            for s in shapes:
+                if s.intersects(text_rect):
+                    intersect = s.intersect(text_rect)
+                    area = intersect.width * intersect.height
+                    if area > max_area:
+                        max_area = area
+                        best_shape = s
+            return best_shape
+
+        def center_rect_in_shape(text_width, text_height, shape_rect):
+            # حساب المنتصف بدقة رياضية
+            new_x0 = shape_rect.x0 + (shape_rect.width / 2.0) - (text_width / 2.0)
+            # تعويض عن VERTICAL_OFFSET اللي بينزل كل النصوص، ورفعة بسيطة إضافية للسنترة البصرية
+            new_y0 = shape_rect.y0 + (shape_rect.height / 2.0) - (text_height / 2.0) - VERTICAL_OFFSET - 1.0
+            return fitz.Rect(new_x0, new_y0, new_x0 + text_width, new_y0 + text_height)
+
         # 🚀 خوارزمية منع التداخل (Anti-Overlap)
         page_width = page.rect.width
         page_midpoint = page_width / 2.0
@@ -251,7 +280,19 @@ def translate_pdf_uniform_font(input_path):
         left_col = []
         right_col = []
         for r in replacements:
-            rect = r[0]
+            rect, translated_text, color_rgb, font_size = r
+            
+            # --- مراجعة الحجم والتوسيط داخل الأشكال أولاً ---
+            # الحروف A, B, C, D والكلمات الدليلية Legend training
+            is_target_center = translated_text.strip() in ["A", "B", "C", "D"] or "Legend" in translated_text or "training" in translated_text.lower()
+            
+            if is_target_center:
+                best_shape = get_best_shape_for_rect(rect)
+                if best_shape:
+                    text_width = fitz.get_text_length(translated_text, fontname=UNIFORM_FONT, fontsize=font_size)
+                    rect = center_rect_in_shape(text_width, font_size, best_shape)
+                    r = (rect, translated_text, color_rgb, font_size) # Update tuple
+            
             if rect.x0 < page_midpoint:
                 left_col.append(r)
             else:
