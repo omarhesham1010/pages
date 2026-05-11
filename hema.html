@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل الملف</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 50px 70px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .container:hover {
+            transform: translateY(-10px);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        p {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 45px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.3);
+            transition: all 0.3s ease;
+        }
+        .download-btn:hover {
+            box-shadow: 0 12px 25px rgba(118, 75, 162, 0.4);
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .download-btn:active {
+            transform: scale(0.95);
+        }
+        .icon {
+            margin-left: 15px; /* RTL margin */
+        }
+        .ppt-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- أيقونة تعبيرية لملفات الباوربوينت -->
+        <svg class="ppt-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 8H40V40H8z" fill="#FF5722"/>
+            <path d="M14 14H34V34H14z" fill="#FFF"/>
+            <path d="M19 19H29V23H19z" fill="#FF5722"/>
+            <path d="M19 25H25V29H19z" fill="#FF5722"/>
+            <text x="24" y="32" font-family="Arial" font-weight="bold" font-size="14" fill="#FF5722" text-anchor="middle">PPT</text>
+        </svg>
+        
+        <h1>إدارة مخاطر الخصوصية</h1>
+        <p>انقر على الزر أدناه لتحميل العرض التقديمي مباشرة</p>
+        
+        <a href="Facebook_Meta_Data_Privacy_Risk_Management.pptx" download class="download-btn">
+            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            تحميل الملف
+        </a>
+    </div>
+</body>
+</html>
